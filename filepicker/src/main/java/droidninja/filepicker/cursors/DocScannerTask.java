@@ -7,7 +7,7 @@ import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
-import com.android.internal.util.Predicate;
+//import com.android.internal.util.Predicate;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import droidninja.filepicker.PickerManager;
 import droidninja.filepicker.cursors.loadercallbacks.FileMapResultCallback;
@@ -50,7 +51,7 @@ public class DocScannerTask extends AsyncTask<Void, Void, Map<FileType, List<Doc
     this.resultCallback = fileResultCallback;
   }
 
-  private HashMap<FileType, List<Document>> createDocumentType(ArrayList<Document> documents) {
+/*  private HashMap<FileType, List<Document>> createDocumentType(ArrayList<Document> documents) {
     HashMap<FileType, List<Document>> documentMap = new HashMap<>();
 
     for (final FileType fileType : fileTypes) {
@@ -67,6 +68,22 @@ public class DocScannerTask extends AsyncTask<Void, Void, Map<FileType, List<Doc
       documentMap.put(fileType, documentListFilteredByType);
     }
 
+    return documentMap;
+  }*/
+
+  private HashMap<FileType, List<Document>> createDocumentType(ArrayList<Document> documents) {
+    HashMap<FileType, List<Document>> documentMap = new HashMap<>();
+
+    for (final FileType fileType : fileTypes) {
+      ArrayList<Document> documentListFilteredByType = new ArrayList<>();
+      for (Document doc: documents) {
+        if (doc.isThisType(fileType.extensions)) {
+          documentListFilteredByType.add(doc);
+        }
+      }
+      if (comparator != null) Collections.sort(documentListFilteredByType, comparator);
+      documentMap.put(fileType, documentListFilteredByType);
+    }
     return documentMap;
   }
 

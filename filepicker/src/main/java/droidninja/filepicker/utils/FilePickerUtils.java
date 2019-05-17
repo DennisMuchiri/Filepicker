@@ -22,19 +22,20 @@ import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
 
 import android.widget.Toast;
-import com.android.internal.util.Predicate;
+//import com.android.internal.util.Predicate;
 import droidninja.filepicker.FilePickerConst;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 /**
  * Created by droidNinja on 29/07/16.
  */
 public class FilePickerUtils {
 
-  public static <T> Collection<T> filter(Collection<T> target, Predicate<T> predicate) {
+  /*public static <T> Collection<T> filter(Collection<T> target, Predicate<T> predicate) {
     Collection<T> result = new ArrayList<T>();
     for (T element : target) {
       if (predicate.apply(element)) {
@@ -42,7 +43,7 @@ public class FilePickerUtils {
       }
     }
     return result;
-  }
+  }*/
 
   public static String getFileExtension(File file) {
     String name = file.getName();
