@@ -9,6 +9,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v7.widget.Toolbar;
+
+import java.util.ArrayList;
+
 import droidninja.filepicker.utils.Orientation;
 
 /**
@@ -38,4 +41,8 @@ public abstract class BaseFilePickerActivity extends AppCompatActivity {
   }
 
   protected abstract void initView();
+
+/*  public BaseFilePickerActivity(ArrayList<String> rtnFilePaths) {
+
+  }*/
 }

@@ -130,6 +130,13 @@ public class FilePickerBuilder {
     start(context, FilePickerConst.REQUEST_CODE_DOC);
   }
 
+/*  public ArrayList<String> pickFile(Fragment context) {
+    ArrayList<String> strpickedfiles=new ArrayList<>();
+    mPickerOptionsBundle.putInt(FilePickerConst.EXTRA_PICKER_TYPE, FilePickerConst.DOC_PICKER);
+    strpickedfiles= start(context, FilePickerConst.REQUEST_CODE_DOC);
+    return strpickedfiles;
+  }*/
+
   public void pickPhoto(Activity context, int requestCode) {
     mPickerOptionsBundle.putInt(FilePickerConst.EXTRA_PICKER_TYPE, FilePickerConst.MEDIA_PICKER);
     start(context, requestCode);
@@ -191,4 +198,28 @@ public class FilePickerBuilder {
 
     fragment.startActivityForResult(intent, requestCode);
   }
+
+/*  private ArrayList<String> start(Fragment fragment, int requestCode) {
+    ArrayList<String> strpickedpaths=new ArrayList<>();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      if (ContextCompat.checkSelfPermission(fragment.getContext(),
+              FilePickerConst.PERMISSIONS_FILE_PICKER) != PackageManager.PERMISSION_GRANTED) {
+        Toast.makeText(fragment.getContext(), fragment.getContext()
+                .getResources()
+                .getString(R.string.permission_filepicker_rationale), Toast.LENGTH_SHORT).show();
+        return strpickedpaths;
+      }
+    }
+
+    PickerManager.getInstance()
+            .setProviderAuthorities(fragment.getContext().getApplicationContext().getPackageName()
+                    + ".droidninja.filepicker.provider");
+
+    FilePickerActivity filePickerActivity=new FilePickerActivity(strpickedpaths);
+    Intent intent = new Intent(fragment.getActivity(), filePickerActivity.getClass());
+    intent.putExtras(mPickerOptionsBundle);
+      intent.putStringArrayListExtra("strpickedpaths",strpickedpaths);
+
+    return strpickedpaths;
+  }*/
 }

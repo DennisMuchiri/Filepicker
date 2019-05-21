@@ -10,6 +10,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -152,6 +153,7 @@ public class CallerFragment extends BaseFragment implements EasyPermissions.Perm
           .enableDocSupport(true)
           .setActivityTheme(R.style.FilePickerTheme)
           .pickFile(this);
+
     }
   }
 

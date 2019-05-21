@@ -16,6 +16,7 @@
 
 package droidninja.filepicker.utils;
 
+import android.content.Context;
 import android.database.DataSetObserver;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,12 +25,16 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
+import droidninja.filepicker.R;
 
 
 public class TabLayoutHelper {
@@ -47,6 +52,7 @@ public class TabLayoutHelper {
     protected Runnable mUpdateScrollPositionRunnable;
     protected boolean mAutoAdjustTabMode = false;
     protected boolean mDuringSetTabsFromPagerAdapter;
+    Context context;
 
     /**
      * Constructor.
@@ -54,8 +60,9 @@ public class TabLayoutHelper {
      * @param tabLayout TabLayout instance
      * @param viewPager ViewPager instance
      */
-    public TabLayoutHelper(@NonNull TabLayout tabLayout, @NonNull ViewPager viewPager) {
+    public TabLayoutHelper(@NonNull TabLayout tabLayout, @NonNull ViewPager viewPager,Context context) {
         PagerAdapter adapter = viewPager.getAdapter();
+        this.context=context;
 
         if (adapter == null) {
             throw new IllegalArgumentException("ViewPager does not have a PagerAdapter set");
@@ -208,6 +215,20 @@ public class TabLayoutHelper {
     protected TabLayout.Tab onCreateTab(TabLayout tabLayout, PagerAdapter adapter, int position) {
         TabLayout.Tab tab = tabLayout.newTab();
         tab.setText(adapter.getPageTitle(position));
+        try {
+            if (position == 0) {
+                TextView tv = (TextView) LayoutInflater.from(context).inflate(R.layout.custom_tab_textview, null);
+                tab.setCustomView(null);
+                tab.setCustomView(tv);
+            } else {
+                TextView tv = (TextView) LayoutInflater.from(context).inflate(R.layout.custom_tab_unselected_textview, null);
+                tab.setCustomView(null);
+                tab.setCustomView(tv);
+            }
+        }catch (Exception xx){
+            xx.printStackTrace();
+        }
+
         return tab;
     }
 
@@ -251,6 +272,13 @@ public class TabLayoutHelper {
         if (mUserOnTabSelectedListener != null) {
             mUserOnTabSelectedListener.onTabSelected(tab);
         }
+        try {
+            TextView tv = (TextView) LayoutInflater.from(context).inflate(R.layout.custom_tab_textview, null);
+            tab.setCustomView(null);
+            tab.setCustomView(tv);
+        } catch (Exception xx) {
+            xx.printStackTrace();
+        }
     }
 
     protected void handleOnTabUnselected(TabLayout.Tab tab) {
@@ -260,6 +288,13 @@ public class TabLayoutHelper {
         if (mUserOnTabSelectedListener != null) {
             mUserOnTabSelectedListener.onTabUnselected(tab);
         }
+        try {
+            TextView tv = (TextView) LayoutInflater.from(context).inflate(R.layout.custom_tab_unselected_textview, null);
+            tab.setCustomView(null);
+            tab.setCustomView(tv);
+        } catch (Exception xx) {
+            xx.printStackTrace();
+        }
     }
 
     protected void handleOnTabReselected(TabLayout.Tab tab) {
@@ -268,6 +303,13 @@ public class TabLayoutHelper {
         }
         if (mUserOnTabSelectedListener != null) {
             mUserOnTabSelectedListener.onTabReselected(tab);
+        }
+        try {
+            TextView tv = (TextView) LayoutInflater.from(context).inflate(R.layout.custom_tab_textview, null);
+            tab.setCustomView(null);
+            tab.setCustomView(tv);
+        } catch (Exception xx) {
+            xx.printStackTrace();
         }
     }
 
