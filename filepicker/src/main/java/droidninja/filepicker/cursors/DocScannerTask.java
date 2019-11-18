@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
@@ -32,24 +33,24 @@ import static android.provider.MediaStore.MediaColumns.DATA;
  */
 public class DocScannerTask extends AsyncTask<Void, Void, Map<FileType, List<Document>>> {
 
-  final String[] DOC_PROJECTION = {
-      MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.DATA,
-      MediaStore.Files.FileColumns.MIME_TYPE, MediaStore.Files.FileColumns.SIZE,
-      MediaStore.Files.FileColumns.DATE_ADDED, MediaStore.Files.FileColumns.TITLE
-  };
-  private final FileMapResultCallback resultCallback;
-  private final Comparator<Document> comparator;
-  private final List<FileType> fileTypes;
+    final String[] DOC_PROJECTION = {
+            MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.DATA,
+            MediaStore.Files.FileColumns.MIME_TYPE, MediaStore.Files.FileColumns.SIZE,
+            MediaStore.Files.FileColumns.DATE_ADDED, MediaStore.Files.FileColumns.TITLE
+    };
+    private final FileMapResultCallback resultCallback;
+    private final Comparator<Document> comparator;
+    private final List<FileType> fileTypes;
 
-  private final ContentResolver contentResolver;
+    private final ContentResolver contentResolver;
 
-  public DocScannerTask(Context context, List<FileType> fileTypes, Comparator<Document> comparator,
-      FileMapResultCallback fileResultCallback) {
-    this.contentResolver = context.getContentResolver();
-    this.fileTypes = fileTypes;
-    this.comparator = comparator;
-    this.resultCallback = fileResultCallback;
-  }
+    public DocScannerTask(Context context, List<FileType> fileTypes, Comparator<Document> comparator,
+                          FileMapResultCallback fileResultCallback) {
+        this.contentResolver = context.getContentResolver();
+        this.fileTypes = fileTypes;
+        this.comparator = comparator;
+        this.resultCallback = fileResultCallback;
+    }
 
 /*  private HashMap<FileType, List<Document>> createDocumentType(ArrayList<Document> documents) {
     HashMap<FileType, List<Document>> documentMap = new HashMap<>();
@@ -71,93 +72,114 @@ public class DocScannerTask extends AsyncTask<Void, Void, Map<FileType, List<Doc
     return documentMap;
   }*/
 
-  private HashMap<FileType, List<Document>> createDocumentType(ArrayList<Document> documents) {
-    HashMap<FileType, List<Document>> documentMap = new HashMap<>();
+    private HashMap<FileType, List<Document>> createDocumentType(ArrayList<Document> documents) {
+        HashMap<FileType, List<Document>> documentMap = new HashMap<>();
 
-    for (final FileType fileType : fileTypes) {
-      ArrayList<Document> documentListFilteredByType = new ArrayList<>();
-      for (Document doc: documents) {
-        if (doc.isThisType(fileType.extensions)) {
-          documentListFilteredByType.add(doc);
+        for (final FileType fileType : fileTypes) {
+            ArrayList<Document> documentListFilteredByType = new ArrayList<>();
+            for (Document doc : documents) {
+                if (doc.isThisType(fileType.extensions)) {
+                    documentListFilteredByType.add(doc);
+                }
+            }
+            if (comparator != null) Collections.sort(documentListFilteredByType, comparator);
+            documentMap.put(fileType, documentListFilteredByType);
         }
-      }
-      if (comparator != null) Collections.sort(documentListFilteredByType, comparator);
-      documentMap.put(fileType, documentListFilteredByType);
-    }
-    return documentMap;
-  }
-
-  @Override protected Map<FileType, List<Document>> doInBackground(Void... voids) {
-    ArrayList<Document> documents = new ArrayList<>();
-
-    String selection = MediaStore.Files.FileColumns.MEDIA_TYPE
-        + "!="
-        + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
-        + " AND "
-        + MediaStore.Files.FileColumns.MEDIA_TYPE
-        + "!="
-        + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
-
-    Cursor cursor =
-        contentResolver.query(MediaStore.Files.getContentUri("external"), DOC_PROJECTION, selection,
-            null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
-
-    if (cursor != null) {
-      documents = getDocumentFromCursor(cursor);
-      cursor.close();
+        return documentMap;
     }
 
-    return createDocumentType(documents);
-  }
+    @Override
+    protected Map<FileType, List<Document>> doInBackground(Void... voids) {
+        ArrayList<Document> documents = new ArrayList<>();
 
-  @Override protected void onPostExecute(Map<FileType, List<Document>> documents) {
-    if (resultCallback != null) {
-      resultCallback.onResultCallback(documents);
-    }
-  }
+/*      String selection = MediaStore.Files.FileColumns.MEDIA_TYPE
+              + "!="
+              + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+              + " AND "
+              + MediaStore.Files.FileColumns.MEDIA_TYPE
+              + "!="
+              + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;*/
 
-  private ArrayList<Document> getDocumentFromCursor(Cursor data) {
-    ArrayList<Document> documents = new ArrayList<>();
-    while (data.moveToNext()) {
+        //String excludeFolder = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + ".AdrianERP/";
+        String excludeFolder = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + ".";
+        String selection = MediaStore.Files.FileColumns.MEDIA_TYPE
+                + "!="
+                + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+                + " AND "
+                + MediaStore.Files.FileColumns.MEDIA_TYPE
+                + "!="
+                + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO
+                + " AND "
+                + MediaStore.MediaColumns.DATA
+                + " NOT LIKE ? ";
 
-      int imageId = data.getInt(data.getColumnIndexOrThrow(_ID));
-      String path = data.getString(data.getColumnIndexOrThrow(DATA));
-      String title = data.getString(data.getColumnIndexOrThrow(MediaStore.Files.FileColumns.TITLE));
 
-      if (path != null) {
+        String[] selectionArgs = new String[]{
+                "" + excludeFolder + "%",
+                //"%" + excludeFolder + "/%/%"
+        };
 
-        FileType fileType = getFileType(PickerManager.getInstance().getFileTypes(), path);
-        File file = new File(path);
-        if (fileType != null && !file.isDirectory() && file.exists()) {
+        Cursor cursor =
+                contentResolver.query(MediaStore.Files.getContentUri("external"), DOC_PROJECTION, selection,
+                        selectionArgs, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
 
-          Document document = new Document(imageId, title, path);
-          document.setFileType(fileType);
-
-          String mimeType =
-              data.getString(data.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE));
-          if (mimeType != null && !TextUtils.isEmpty(mimeType)) {
-            document.setMimeType(mimeType);
-          } else {
-            document.setMimeType("");
-          }
-
-          document.setSize(
-              data.getString(data.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)));
-
-          if (!documents.contains(document)) documents.add(document);
+        if (cursor != null) {
+            documents = getDocumentFromCursor(cursor);
+            cursor.close();
         }
-      }
+
+        return createDocumentType(documents);
     }
 
-    return documents;
-  }
-
-  private FileType getFileType(ArrayList<FileType> types, String path) {
-    for (int index = 0; index < types.size(); index++) {
-      for (String string : types.get(index).extensions) {
-        if (path.endsWith(string)) return types.get(index);
-      }
+    @Override
+    protected void onPostExecute(Map<FileType, List<Document>> documents) {
+        if (resultCallback != null) {
+            resultCallback.onResultCallback(documents);
+        }
     }
-    return null;
-  }
+
+    private ArrayList<Document> getDocumentFromCursor(Cursor data) {
+        ArrayList<Document> documents = new ArrayList<>();
+        while (data.moveToNext()) {
+
+            int imageId = data.getInt(data.getColumnIndexOrThrow(_ID));
+            String path = data.getString(data.getColumnIndexOrThrow(DATA));
+            String title = data.getString(data.getColumnIndexOrThrow(MediaStore.Files.FileColumns.TITLE));
+
+            if (path != null) {
+
+                FileType fileType = getFileType(PickerManager.getInstance().getFileTypes(), path);
+                File file = new File(path);
+                if (fileType != null && !file.isDirectory() && file.exists()) {
+
+                    Document document = new Document(imageId, title, path);
+                    document.setFileType(fileType);
+
+                    String mimeType =
+                            data.getString(data.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE));
+                    if (mimeType != null && !TextUtils.isEmpty(mimeType)) {
+                        document.setMimeType(mimeType);
+                    } else {
+                        document.setMimeType("");
+                    }
+
+                    document.setSize(
+                            data.getString(data.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)));
+
+                    if (!documents.contains(document)) documents.add(document);
+                }
+            }
+        }
+
+        return documents;
+    }
+
+    private FileType getFileType(ArrayList<FileType> types, String path) {
+        for (int index = 0; index < types.size(); index++) {
+            for (String string : types.get(index).extensions) {
+                if (path.endsWith(string)) return types.get(index);
+            }
+        }
+        return null;
+    }
 }
